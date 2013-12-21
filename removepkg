@@ -1,0 +1,27 @@
+#!/bin/bash
+
+PKG=
+PKG_LST='/var/lib/pkgutils/packages'
+ROOT='/'
+DRYRUN=
+RECURS=
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		--warn | -n ) DRYRUN=1; shift; break;;
+		*           ) break;;
+    esac
+done
+PKG=$1
+FILE=${PKG%%tar*}
+FILE=${FILE##*/}
+
+# get file list to delete
+if [ $DRYRUN ]; then
+	cat $PKG_LST/$FILE | awk '{printf "rm -v /%s\n", $6}'
+else
+	cat $PKG_LST/$FILE | awk '{printf "/%s\n", $6}' | xargs rm -rfv
+fi
+
+# remove package listing
+rm $PKG_LST/$FILE
