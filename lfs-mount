@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# just in case
+export LFS=/mnt/lfs
+
+mounts()
+{
+	mount -v -t ext4 /dev/sda10 $LFS
+	mount -v -t ext4 /dev/sda6 $LFS/boot
+	mount -v -t ext4 /dev/sda7 $LFS/opt
+	mount -v -t ext4 /dev/sda8 $LFS/usr/src
+	mount -v -t ext4 /dev/sda9 $LFS/home
+}
+
+umounts()
+{
+	umount -v /dev/sda6
+	umount -v /dev/sda7
+	umount -v /dev/sda8
+	umount -v /dev/sda9
+	umount -v /dev/sda10
+}
+
+case $(basename $0) in
+ lfs-mount  ) mounts;;
+ lfs-umount ) umounts;;
+esac

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+mount_kvfs()
+{
+	(exec ./lfs-mount)
+
+	mount -v --bind /dev $LFS/dev
+	mount -vt devpts devpts $LFS/dev/pts -o gid=5,mode=620
+	mount -vt proc proc $LFS/proc
+	mount -vt sysfs sysfs $LFS/sys
+	if [ -h $LFS/dev/shm ]; then
+	  link=$(readlink $LFS/dev/shm)
+	  mkdir -p $LFS/$link
+	  mount -vt tmpfs shm $LFS/$link
+	  unset link
+	else
+	  mount -vt tmpfs shm $LFS/dev/shm
+	fi
+}
+
+umount_kvfs()
+{
+	umount -v $LFS/dev/pts
+	umount -v $LFS/dev/shm
+	umount -v $LFS/dev
+	umount -v $LFS/proc
+	umount -v $LFS/sys
+	
+	(exec ./lfs-umount)
+}
+
+case $(basename $0) in
+ lfs-mount-kvfs  ) mount_kvfs;;
+ lfs-umount-kvfs ) umount_kvfs;;
+esac
