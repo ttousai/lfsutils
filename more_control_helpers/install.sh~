@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# This script installs all the neccessary files for pkgusr
+# except the groupadd and useradd binaries for a full system.
+# The groupadd and useradd scripts are installed in the temporary
+# LFS environment because shadow is not installed.
+
+if [ z$1 == "zinstall" -o z$1 == "zinstall_lfs" ]; then
+	cp bin/* /tmp/bin
+
+	if [ z$1 == "zinstall_lfs" ]; then
+		cp sbin/* /tmp/sbin
+	else
+		cp sbin/{install_package,add_package_user} /tmp/sbin
+	fi
+
+	# install global pkgusr configuration files
+	mkdir -pv /tmp/etc/pkgusr
+	cp -a etc/* /tmp/etc/pkgusr
+
+	# install pkgusr wrappers, except the C sources.
+	mkdir -pv /tmp/usr/lib/pkgusr
+	ls lib/* | grep -v '*.c' | xargs -I file cp file /tmp/usr/lib/pkgusr
+	echo "export PATH=/usr/lib/pkgusr:$PATH" >> /tmp/.bashrc
+fi
+
+if [ z$1 == "zuninstall" ]; then
+	#rm all files owned by this script
+	for f in `ls bin`; do
+		rm /tmp/bin/$f
+	done
+
+	for f in `ls sbin`; do
+		rm /tmp/sbin/$f
+	done
+
+	rm -rf /tmp/etc/pkgusr
+	rm -rf /tmp/usr/lib/pkgusr
+
+	#delete PATH entry
+	sed -i '/.*\/usr\/lib\/pkgusr/d' /tmp/.bashrc
+fi
